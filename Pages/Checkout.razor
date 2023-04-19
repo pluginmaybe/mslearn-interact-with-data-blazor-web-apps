@@ -4,40 +4,34 @@
 @inject HttpClient HttpClient
 @inject NavigationManager NavigationManager
 
-
-
 <div class="main">
+  <EditForm Model=Order.DeliveryAddress OnSubmit=CheckSubmission>
   <div class="checkout-cols">
     <div class="checkout-order-details">
       <h4>Review order</h4>
-      @foreach (var pizza in Order.Pizzas)
+      <OrderReview Order="Order" />
+    </div>
+
+    <div class="checkout-delivery-address">
+      <h4>Deliver to...</h4>
+      @if (isError)
       {
-        <p>
-          <strong>
-            @(pizza.Size)"
-            @pizza.Special.Name
-            (£@pizza.GetFormattedTotalPrice())
-          </strong>
-        </p>
+        <div class="alert alert-danger">Please enter a name and address.</div>
       }
-      <p>
-        <strong>
-          Total price:
-          £@Order.GetFormattedTotalPrice()
-        </strong>
-      </p>
+      <AddressEditor Address="Order.DeliveryAddress"/>
     </div>
   </div>
 
-  <button class="checkout-button btn btn-warning" @onclick="PlaceOrder" disabled=@isSubmitting>
+  <button class="checkout-button btn btn-warning" disabled=@isSubmitting>
     Place order
   </button>
+  </EditForm>
 </div>
 
 @code
 {
   Order Order => OrderState.Order;
-
+  bool isError = false;
   bool isSubmitting;
 
   async Task PlaceOrder()
@@ -47,5 +41,18 @@
     var newOrderId = await response.Content.ReadFromJsonAsync<int>();
     OrderState.ResetOrder();
     NavigationManager.NavigateTo($"myorders/{newOrderId}");
+  }
+  private async Task CheckSubmission(EditContext editContext)
+  {
+    isSubmitting = true;
+    var model = editContext.Model as Address;
+    isError = string.IsNullOrWhiteSpace(model?.Name)
+      || string.IsNullOrWhiteSpace(model?.Line1)
+      || string.IsNullOrWhiteSpace(model?.PostalCode);
+    if (!isError)
+    {
+      await PlaceOrder();
+    }
+    isSubmitting = false;
   }
 }
