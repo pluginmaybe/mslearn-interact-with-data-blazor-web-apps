@@ -3,6 +3,7 @@
 @inject HttpClient HttpClient
 
 
+
 <div class="main">
   @if (invalidOrder)
   {
@@ -35,6 +36,7 @@
       </div>
       <div class="track-order-body">
         <div class="track-order-details">
+          
           @foreach (var pizza in orderWithStatus.Order.Pizzas)
           {
             <p>
